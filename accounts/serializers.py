@@ -70,6 +70,25 @@ class AccountCreatedSerializer(serializers.Serializer):
 class InvalidDataSerializer(serializers.Serializer):
     message = serializers.CharField(default="Input data is invalid. Check end try again.")
 
+
+class TokenInvalidSerializer(serializers.Serializer):
+    detail = serializers.CharField(default="Token is invalid or expired.")
+    code = serializers.CharField(default="token_not_valid.")
+
+
+class LogInDetailsErrorSerializer(serializers.Serializer):
+    detail = serializers.CharField(default="No active account found with the given credentials.")
+
+
+class GetTokenSerializer(serializers.Serializer):
+    refresh = serializers.CharField(default="refresh token")
+    access = serializers.CharField(default="access token.")
+
+
+class RefreshTokenSerializer(serializers.Serializer):
+    access = serializers.CharField(default="access token.")
+
+
 # class CustomRegisterSerializer(RegisterSerializer):
 #
 #     name = serializers.CharField(max_length=50)

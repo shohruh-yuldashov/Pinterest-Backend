@@ -1,48 +1,7 @@
 from rest_framework.serializers import ModelSerializer, Serializer
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-# from django.contrib.auth.models import User
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
-
-
-# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-#     """Customizes JWT default Serializer to add more information about user"""
-#     @classmethod
-#     def get_token(cls, user):
-#         print('test')
-#         token = super().get_token(user)
-#         token['email'] = user.email
-#         token['is_superuser'] = user.is_superuser
-#         token['is_staff'] = user.is_staff
-#
-#         print(token)
-#
-#         return token
-#
-#
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('username', 'password', 'email', 'token')
-
-    token = serializers.SerializerMethodField()
-    password = serializers.CharField(write_only=True)
-
-    # def get_token(self, user):
-    #     refresh = RefreshToken.for_user(user)
-    #     return {
-    #         'refresh': str(refresh),
-    #         'access': str(refresh.access_token),
-    #     }
-
-
-class UserDetailSerializer(ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = ('first_name', 'last_name', 'username', 'email', 'password')
 
 
 class RegisterInputSerializer(Serializer):
@@ -63,12 +22,17 @@ class RegisterInputSerializer(Serializer):
         return instance
 
 
+class UpdatePasswordSerializer(Serializer):
+    current_password = serializers.CharField(write_only=True, required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+
+
 class AccountCreatedSerializer(serializers.Serializer):
-    message = serializers.CharField(default='Account successfully created.')
+    detail = serializers.CharField(default='Account successfully created.')
 
 
 class InvalidDataSerializer(serializers.Serializer):
-    message = serializers.CharField(default="Input data is invalid. Check end try again.")
+    detail = serializers.CharField(default="Input data is invalid. Check and try again.")
 
 
 class TokenInvalidSerializer(serializers.Serializer):
@@ -87,3 +51,19 @@ class GetTokenSerializer(serializers.Serializer):
 
 class RefreshTokenSerializer(serializers.Serializer):
     access = serializers.CharField(default="access token.")
+
+
+class UnauthorizedSerializer(serializers.Serializer):
+    detail = serializers.CharField(default="Authentication credentials were not provided.")
+
+
+class PasswordUpdatedSerializer(serializers.Serializer):
+    detail = serializers.CharField(default="Password updated successfully.")
+
+
+class OldPasswordInvalidSerializer(serializers.Serializer):
+    detail = serializers.CharField(default="Your old password is invalid.")
+
+
+class PasswordsAreSameSerializer(serializers.Serializer):
+    detail = serializers.CharField(default="Your old and new passwords are same.")

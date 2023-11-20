@@ -87,18 +87,3 @@ class GetTokenSerializer(serializers.Serializer):
 
 class RefreshTokenSerializer(serializers.Serializer):
     access = serializers.CharField(default="access token.")
-
-
-# class CustomRegisterSerializer(RegisterSerializer):
-#
-#     name = serializers.CharField(max_length=50)
-#     username = serializers.CharField(max_length=50)
-#
-#     def get_cleaned_data(self):
-#         super(CustomRegisterSerializer, self).get_cleaned_data()
-#
-#         return {
-#             'password': self.validated_data.get('password', ''),
-#             'name': self.validated_data.get('name', ''),
-#             'username': self.validated_data.get('username', '')
-#         }

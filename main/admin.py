@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from main.models import Post, Board, Comment, Like
+
+admin.site.register((Post, Board, Comment, Like))

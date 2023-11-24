@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework import generics
 from main.sereializer import *
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
 
 
 class TestApiView(APIView):
@@ -26,6 +28,7 @@ class BoardCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+
 class BoardEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
@@ -40,11 +43,11 @@ class PostCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+
 class PostEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
-
 
 
 class CommentCreateView(generics.ListCreateAPIView):
@@ -54,6 +57,7 @@ class CommentCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
 
 class CommentEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
@@ -76,17 +80,15 @@ class LikeEditView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
 
+class SubscribeAPIView(GenericAPIView):
+    serializer_class = EmailSerializer
+    permission_classes = ()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def post(self, request):
+        if not Subscriber.objects.filter(email=request.data['email']).exists():
+            email_serializer = self.serializer_class(data=request.data)
+            email_serializer.is_valid(raise_exception=True)
+            email_serializer.save()
+        else:
+            return Response({'success': False, 'message': 'Already subscribed!'}, status=400)
+        return Response({'success': True, 'message': 'Successfully subscribed :)'})

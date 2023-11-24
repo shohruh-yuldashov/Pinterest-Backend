@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class Board(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
     name = models.CharField(max_length=255)
@@ -19,11 +20,13 @@ class Post(models.Model):
     hashtag = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
+
 class Comment(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
     post = models.ForeignKey(Post, models.CASCADE)
-    text= models.TextField(max_length=500)
+    text = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
 class Like(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
@@ -31,3 +34,9 @@ class Like(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class Subscriber(models.Model):
+    email = models.EmailField()
+    subscribed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

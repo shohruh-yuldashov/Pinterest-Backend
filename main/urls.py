@@ -12,4 +12,5 @@ urlpatterns = [
     path('comment/<int:pk>/', CommentEditView.as_view(), name='edit_comment'),
     path('like/', LikeCreateView.as_view(), name='create_like'),
     path('like/<int:pk>', LikeEditView.as_view(), name='edit_like'),
+    path('subscribe/', SubscribeAPIView.as_view(), name='subscribe')
 ]

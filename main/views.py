@@ -1,6 +1,9 @@
+from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from main.sereializer import *
@@ -18,62 +21,191 @@ class TestApiView(APIView):
         return JsonResponse({'message': "test"})
 
 
-class BoardCreateView(generics.ListCreateAPIView):
-    queryset = Board.objects.all()
+class BoardView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = BoardSerializer
-    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get(self, request):
+        board = Board.objects.filter(user_id=request.user.id)
+        board_serializer = BoardSerializer(board, many=True)
+        return Response(board_serializer.data)
 
-class BoardEditView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Board.objects.all()
+    def post(self, request):
+        name = request.POST.get('name')
+        board = Board.objects.create(
+            user_id=request.user.id,
+            name=name
+        )
+        board.save()
+        board_serializer = BoardSerializer(board)
+        return Response(board_serializer.data)
+
+class BoardUpdateView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = BoardSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get(self,request,pk):
+        board = Board.objects.filter(Q(user_id=request.user.id) & Q(pk=pk))
+        board_serializer = BoardSerializer(board)
+        return Response(board_serializer.data)
+
+    def patch(self,request, pk):
+        name = request.POST.get('name', None)
+        board = Board.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
+        if name:
+            board.name = name
+        board.save()
+        board_serializer = BoardSerializer(board)
+        return Response(board_serializer.data)
+
+    def delete(self,request,pk):
+        Board.objects.get(Q(pk=pk) & Q(user_id=request.user.id)).delete()
+        return Response(status=204)
 
 
-class PostCreateView(generics.ListCreateAPIView):
-    queryset = Post.objects.all()
+class PostView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get(self,request):
+        post = Post.objects.filter(user_id=request.user)
+        p_serializer = PostSerializer(post, many=True)
+        return Response(p_serializer.data)
 
-class PostEditView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
+    def post(self, request):
+        user = request.user.id
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        link = request.POST.get('link')
+        hashtag = request.POST.get('hashtag')
+        board = request.POST.get('board')
+        image = request.FILES.getlist('image')
+
+
+        post = Post.objects.create(
+            user_id=user,
+            image=image,
+            name=name,
+            description=description,
+            link=link,
+            hashtag=hashtag,
+            board_id=board
+        )
+        post.save()
+
+        po_ser = PostSerializer(post)
+        return Response(po_ser.data)
+
+class PostUpdateView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
 
+    def patch(self,request,pk):
+        image = request.FILES.getlist('image', None)
+        name = request.POST.get('name', None)
+        des = request.POST.get('description', None)
+        link = request.POST.get('link', None)
+        hash = request.POST.get('hashtag', None)
 
+        post = Post.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
+        if image:
+            post.image = image
+        if name:
+            post.name = name
+        if des:
+            post.description = des
+        if link:
+            post.link = link
+        if hash:
+            post.hashtag = hash
+        post.save()
 
-class CommentCreateView(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
+        po_ser = PostSerializer(post)
+        return Response(po_ser.data)
+
+    def delete(self,request,pk):
+        Post.objects.get(Q(pk=pk) & Q(user_id=request.user.id)).delete()
+        return Response(status=204)
+
+class CommentView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get(self,request):
+        coment = Comment.objects.filter(user_id=request.user.id)
+        c_seria = CommentSerializer(coment, many=True)
+        return Response(c_seria.data)
 
-class CommentEditView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
+    def post(self,request):
+        coment = request.POST.get('comment')
+        pp = request.POST.get('post')
+
+        cc = Comment.objects.create(
+            post_id=pp,
+            text=coment,
+            user_id=request.user.id
+        )
+        cc.save()
+        coment_serializer = CommentSerializer(cc)
+        return Response(coment_serializer.data)
+
+
+class CommentUpdateView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
 
+    def patch(self,request,pk):
+        text = request.POST.get('comment')
 
-class LikeCreateView(generics.ListCreateAPIView):
-    queryset = Like.objects.all()
+        com = Comment.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
+        if text:
+            com.text = text
+        com.save()
+        comment_serializer = CommentSerializer(com)
+        return Response(comment_serializer.data)
+
+    def delete(self,request,pk):
+        Comment.objects.get(Q(user_id=request.user.id) & Q(pk=pk)).delete()
+        return Response(status=204)
+
+class LikeViews(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get(self,request):
+        like = Like.objects.filter(user_id=request.user.id)
+        lik_ser = LikeSerializer(like, many=True)
+        return Response(lik_ser.data)
 
+    def post(self, request):
+        post = request.POST.get('post')
+        like = Like.objects.create(
+            post_id=post,
+            user_id=request.user.id
+        )
+        like.save()
+        like_serializer = LikeSerializer(like)
+        return Response(like_serializer.data)
 
-class LikeEditView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Like.objects.all()
+class LikeUpdateView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = LikeSerializer
-    permission_classes = [IsAuthenticated]
+
+    def delete(self,request,pk):
+        Like.objects.get(Q(user_id=request.user.id) & Q(pk=pk)).delete()
+        return Response(status=204)
+
+
+
+
+
+
+
+
+
+
+
 
 
 

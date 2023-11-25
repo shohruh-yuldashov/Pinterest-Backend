@@ -40,16 +40,17 @@ class BoardView(GenericAPIView):
         board_serializer = BoardSerializer(board)
         return Response(board_serializer.data)
 
+
 class BoardUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = BoardSerializer
 
-    def get(self,request,pk):
+    def get(self, request, pk):
         board = Board.objects.filter(Q(user_id=request.user.id) & Q(pk=pk))
         board_serializer = BoardSerializer(board)
         return Response(board_serializer.data)
 
-    def patch(self,request, pk):
+    def patch(self, request, pk):
         name = request.POST.get('name', None)
         board = Board.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
         if name:
@@ -58,7 +59,7 @@ class BoardUpdateView(GenericAPIView):
         board_serializer = BoardSerializer(board)
         return Response(board_serializer.data)
 
-    def delete(self,request,pk):
+    def delete(self, request, pk):
         Board.objects.get(Q(pk=pk) & Q(user_id=request.user.id)).delete()
         return Response(status=204)
 
@@ -67,7 +68,7 @@ class PostView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = PostSerializer
 
-    def get(self,request):
+    def get(self, request):
         post = Post.objects.filter(user_id=request.user)
         p_serializer = PostSerializer(post, many=True)
         return Response(p_serializer.data)
@@ -80,7 +81,6 @@ class PostView(GenericAPIView):
         hashtag = request.POST.get('hashtag')
         board = request.POST.get('board')
         image = request.FILES.getlist('image')
-
 
         post = Post.objects.create(
             user_id=user,
@@ -96,12 +96,13 @@ class PostView(GenericAPIView):
         po_ser = PostSerializer(post)
         return Response(po_ser.data)
 
+
 class PostUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     serializer_class = PostSerializer
 
-    def patch(self,request,pk):
+    def patch(self, request, pk):
         image = request.FILES.getlist('image', None)
         name = request.POST.get('name', None)
         des = request.POST.get('description', None)
@@ -124,20 +125,21 @@ class PostUpdateView(GenericAPIView):
         po_ser = PostSerializer(post)
         return Response(po_ser.data)
 
-    def delete(self,request,pk):
+    def delete(self, request, pk):
         Post.objects.get(Q(pk=pk) & Q(user_id=request.user.id)).delete()
         return Response(status=204)
+
 
 class CommentView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CommentSerializer
 
-    def get(self,request):
+    def get(self, request):
         coment = Comment.objects.filter(user_id=request.user.id)
         c_seria = CommentSerializer(coment, many=True)
         return Response(c_seria.data)
 
-    def post(self,request):
+    def post(self, request):
         coment = request.POST.get('comment')
         pp = request.POST.get('post')
 
@@ -155,7 +157,7 @@ class CommentUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = CommentSerializer
 
-    def patch(self,request,pk):
+    def patch(self, request, pk):
         text = request.POST.get('comment')
 
         com = Comment.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
@@ -165,15 +167,16 @@ class CommentUpdateView(GenericAPIView):
         comment_serializer = CommentSerializer(com)
         return Response(comment_serializer.data)
 
-    def delete(self,request,pk):
+    def delete(self, request, pk):
         Comment.objects.get(Q(user_id=request.user.id) & Q(pk=pk)).delete()
         return Response(status=204)
+
 
 class LikeViews(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = LikeSerializer
 
-    def get(self,request):
+    def get(self, request):
         like = Like.objects.filter(user_id=request.user.id)
         lik_ser = LikeSerializer(like, many=True)
         return Response(lik_ser.data)
@@ -188,37 +191,44 @@ class LikeViews(GenericAPIView):
         like_serializer = LikeSerializer(like)
         return Response(like_serializer.data)
 
+
 class LikeUpdateView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = LikeSerializer
 
-    def delete(self,request,pk):
+    def delete(self, request, pk):
         Like.objects.get(Q(user_id=request.user.id) & Q(pk=pk)).delete()
         return Response(status=204)
 
 
 
+class SubscribeAPIView(GenericAPIView):
+    serializer_class = EmailSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        if not Subscriber.objects.filter(email=request.data['email']).exists():
+            email_serializer = self.serializer_class(data=request.data)
+            email_serializer.is_valid(raise_exception=True)
+            email_serializer.save()
+        else:
+            return Response({'success': False, 'message': 'Already subscribed!'}, status=400)
+        return Response({'success': True, 'message': 'Successfully subscribed :)'})
 
 
+class UnsubscribeAPIView(GenericAPIView):
+    serializer_class = EmailSerializer
+    permission_classes = (IsAuthenticated,)
 
+    def post(self, request):
+        email_serializer = self.serializer_class(data=request.data)
+        email_serializer.is_valid(raise_exception=True)
 
+        email = email_serializer.validated_data['email']
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        try:
+            subscriber = Subscriber.objects.get(email=email)
+            subscriber.delete()
+            return Response({'success': True, 'message': 'Successfully unsubscribed :)'})
+        except Subscriber.DoesNotExist:
+            return Response({'success': False, 'message': 'Email not found. Unable to unsubscribe :('}, status=404)

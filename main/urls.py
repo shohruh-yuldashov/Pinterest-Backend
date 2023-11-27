@@ -12,4 +12,5 @@ urlpatterns = [
     path('comment-update/<int:pk>/', CommentUpdateView.as_view(), name='edit_comment'),
     path('like/', LikeViews.as_view(), name='create_like'),
     path('like-update/<int:pk>', LikeUpdateView.as_view(), name='edit_like'),
+    path('post/<str:slug>', SlugAPIView.as_view(), name='post_detail'),
 ]

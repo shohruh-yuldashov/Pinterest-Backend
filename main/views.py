@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -135,17 +135,17 @@ class CommentView(GenericAPIView):
     serializer_class = CommentSerializer
 
     def get(self, request):
-        coment = Comment.objects.filter(user_id=request.user.id)
-        c_seria = CommentSerializer(coment, many=True)
+        comment = Comment.objects.filter(user_id=request.user.id)
+        c_seria = CommentSerializer(comment, many=True)
         return Response(c_seria.data)
 
     def post(self, request):
-        coment = request.POST.get('comment')
+        comment = request.POST.get('comment')
         pp = request.POST.get('post')
 
         cc = Comment.objects.create(
             post_id=pp,
-            text=coment,
+            text=comment,
             user_id=request.user.id
         )
         cc.save()
@@ -232,3 +232,18 @@ class UnsubscribeAPIView(GenericAPIView):
             return Response({'success': True, 'message': 'Successfully unsubscribed :)'})
         except Subscriber.DoesNotExist:
             return Response({'success': False, 'message': 'Email not found. Unable to unsubscribe :('}, status=404)
+
+
+class SlugAPIView(RetrieveAPIView):
+    permission_classes = ()
+    serializer_class = PostSerializer
+
+    @swagger_auto_schema(query_serializer=SlugSerializer)
+    def get(self, request):
+        slug = self.request.query_params.get('slug', None)
+        if slug is not None:
+            todo = Post.objects.filter(slug=slug).first()
+        else:
+            todo = Post.objects.first()
+        todo_serializer = self.get_serializer(todo)
+        return Response(todo_serializer.data)

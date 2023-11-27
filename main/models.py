@@ -6,12 +6,6 @@ from os.path import splitext
 User = get_user_model()
 
 
-def slugify_upload(instance, filename):
-    folder = instance._meta.model_name
-    name, ext = splitext(filename)
-    name_t = slugify(name) or name
-    return f"{folder}/{name_t}{ext}"
-
 
 class Board(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
@@ -20,6 +14,13 @@ class Board(models.Model):
 
     def __str__(self):
         return self.name
+
+
+def slugify_upload(instance, filename):
+    folder = instance._meta.model_name
+    name, ext = splitext(filename)
+    name_t = slugify(name) or name
+    return f"{folder}/{name_t}{ext}"
 
 
 class Post(models.Model):
@@ -32,6 +33,16 @@ class Post(models.Model):
     hashtag = models.CharField(max_length=100)
     board = models.ForeignKey(Board, models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(
+        self, *args, **kwargs
+    ):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 
 class Comment(models.Model):

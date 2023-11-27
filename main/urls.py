@@ -1,6 +1,11 @@
-from django.urls import path
+from django.urls import path, include
+
+from rest_framework import routers
 
 from main.views import *
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register('pinterest-search', SearchViewSet, basename='pinterest_search')
 
 urlpatterns = [
     path('test/', TestApiView.as_view(), name='test'),
@@ -13,4 +18,5 @@ urlpatterns = [
     path('like/', LikeViews.as_view(), name='create_like'),
     path('like-update/<int:pk>', LikeUpdateView.as_view(), name='edit_like'),
     path('post/<str:slug>', SlugAPIView.as_view(), name='post_detail'),
+    path('', include(router.urls))
 ]

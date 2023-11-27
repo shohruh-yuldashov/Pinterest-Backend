@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from main.models import *
 
+from .documents import Document
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
+
 
 class BoardSerializer(serializers.ModelSerializer):
     # boards = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
@@ -41,4 +44,13 @@ class EmailSerializer(serializers.ModelSerializer):
 
 class SlugSerializer(serializers.Serializer):
     slug = serializers.CharField()
+
+
+class PostDocumentSerializer(DocumentSerializer):
+    price = serializers.FloatField()
+
+    class Meta:
+        document = Document
+        fields = ('name', 'slug' 'description')
+
 

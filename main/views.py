@@ -30,8 +30,9 @@ class BoardView(GenericAPIView):
         board_serializer = BoardSerializer(board, many=True)
         return Response(board_serializer.data)
 
+    @swagger_auto_schema(request_body=BoardSerializer)
     def post(self, request):
-        name = request.POST.get('name')
+        name = request.data.get('name')
         board = Board.objects.create(
             user_id=request.user.id,
             name=name
@@ -51,7 +52,7 @@ class BoardUpdateView(GenericAPIView):
         return Response(board_serializer.data)
 
     def patch(self, request, pk):
-        name = request.POST.get('name', None)
+        name = request.data.get('name', None)
         board = Board.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
         if name:
             board.name = name
@@ -75,15 +76,16 @@ class PostView(GenericAPIView):
 
     def post(self, request):
         user = request.user.id
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        link = request.POST.get('link')
-        hashtag = request.POST.get('hashtag')
-        board = request.POST.get('board')
+        name = request.data.get('name')
+        description = request.data.get('description')
+        link = request.data.get('link')
+        hashtag = request.data.get('hashtag')
+        board = request.data.get('board')
         image = request.FILES.getlist('image')
 
         post = Post.objects.create(
             user_id=user,
+            slug=slugify(name),
             image=image,
             name=name,
             description=description,
@@ -104,10 +106,10 @@ class PostUpdateView(GenericAPIView):
 
     def patch(self, request, pk):
         image = request.FILES.getlist('image', None)
-        name = request.POST.get('name', None)
-        des = request.POST.get('description', None)
-        link = request.POST.get('link', None)
-        hash = request.POST.get('hashtag', None)
+        name = request.data.get('name', None)
+        des = request.data.get('description', None)
+        link = request.data.get('link', None)
+        hash = request.data.get('hashtag', None)
 
         post = Post.objects.get(Q(user_id=request.user.id) & Q(pk=pk))
         if image:

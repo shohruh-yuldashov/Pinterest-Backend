@@ -6,11 +6,10 @@ from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
 
 class BoardSerializer(serializers.ModelSerializer):
-    # boards = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
 
     class Meta:
         model = Board
-        fields = '__all__'
+        fields = ('name',)
         read_only_fields = ('user',)
 
 
@@ -33,7 +32,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-        read_only_fields = ('user',)
+        read_only_fields = ('user','slug',)
 
 
 class EmailSerializer(serializers.ModelSerializer):

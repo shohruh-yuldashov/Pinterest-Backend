@@ -24,6 +24,7 @@ class Board(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
+    slug = models.SlugField(blank= True, null=True)
     image = models.FileField(upload_to=slugify_upload, null=True, blank=True)
     name = models.CharField(max_length=150)
     description = models.TextField(max_length=500)

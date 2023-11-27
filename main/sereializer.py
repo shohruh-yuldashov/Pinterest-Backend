@@ -37,3 +37,8 @@ class EmailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriber
         fields = '__all__'
+
+
+class SlugSerializer(serializers.Serializer):
+    slug = serializers.CharField()
+

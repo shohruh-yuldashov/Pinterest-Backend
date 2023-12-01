@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
+from elasticsearch_dsl.connections import connections
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-fg5nb^+04d#r-or#%jydw)z$+)oyo440sa1m2+gcoyi^-+r8cw'
@@ -26,6 +27,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
 ]
 
 MIDDLEWARE = [
@@ -61,11 +64,11 @@ WSGI_APPLICATION = 'root.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('DB_DATABASE'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
+        'NAME': os.environ.get('DJANGO_DB_NAME'),
+        'USER': os.environ.get('DJANGO_DB_USER'),
+        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD'),
+        'HOST': os.environ.get('DJANGO_DB_HOST'),
+        'PORT': os.environ.get('DJANGO_DB_PORT'),
     }
 }
 
@@ -134,6 +137,20 @@ SWAGGER_SETTINGS = {
     }
     }
 }
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'http://elasticsearch:9200',
+    },
+}
+
+
+connections.create_connection(hosts=['http://elasticsearch:9200'])
+
+ELASTICSEARCH_INDEX_NAMES = {
+    'main.Documents': 'main'
+}
+
 
 AUTH_USER_MODEL = 'accounts.User'
 

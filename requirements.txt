@@ -24,3 +24,5 @@ rest-framework-simplejwt==0.0.2
 sqlparse==0.4.4
 typing_extensions==4.8.0
 uritemplate==4.1.1
+django-elasticsearch-dsl==8.0
+django-elasticsearch-dsl-drf==0.22.5

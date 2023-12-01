@@ -1,13 +1,23 @@
 from django.db.models import Q
+from elasticsearch_dsl import Q as QQ
 from django.http import JsonResponse
+from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from main.sereializer import *
 from rest_framework.permissions import IsAuthenticated
+from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+from django_elasticsearch_dsl_drf.filter_backends import (
+    FilteringFilterBackend,
+    SearchFilterBackend,
+    SuggesterFilterBackend,
+)
+from .documents import Documents
 
 
 class TestApiView(APIView):
@@ -249,3 +259,68 @@ class SlugAPIView(RetrieveAPIView):
             todo = Post.objects.first()
         todo_serializer = self.get_serializer(todo)
         return Response(todo_serializer.data)
+
+
+class Pagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class SearchViewSet(DocumentViewSet):
+    document = Documents
+    serializer_class = DocSerializer
+    pagination_class = Pagination
+
+    filter_backends = [
+        FilteringFilterBackend,
+        SearchFilterBackend,
+        SuggesterFilterBackend,
+    ]
+
+    search_fields = (
+        'name',
+        'slug'
+    )
+
+    filter_fields = {
+        'name': 'name',
+        'slug': 'slug'
+    }
+
+    suggester_fields = {
+        'name': {
+            'field': 'name.suggest',
+            'suggesters': [
+                SUGGESTER_COMPLETION
+            ]
+        },
+        'slug': {
+            'field': 'slug.suggest',
+            'suggesters': [
+                SUGGESTER_COMPLETION
+            ]
+        }
+    }
+
+    def list(self, request,**kwargs):
+
+        serch = self.request.query_params.get('search','')
+
+        qury = QQ('multi_match', query=serch, fields=self.search_fields)
+
+        qurset = self.filter_queryset(self.get_queryset().query(qury))
+        print('Queryset >>>>>', qurset)
+
+        page = self.paginate_queryset(qurset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(qurset, many=True)
+        return Response(serializer.data)
+
+
+
+
+

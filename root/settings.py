@@ -28,7 +28,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'django_filters',
     'django_elasticsearch_dsl',
-    'django_elasticsearch_dsl_drf',
+
+    'django_elasticsearch_dsl_drf'
+
 ]
 
 MIDDLEWARE = [
@@ -168,3 +170,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/token'
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'http://elasticsearch:9200',
+    },
+}
+
+
+connections.create_connection(hosts=['http://elasticsearch:9200'])
+
+ELASTICSEARCH_INDEX_NAMES = {
+    'main.DocumentTodo': 'main'
+}

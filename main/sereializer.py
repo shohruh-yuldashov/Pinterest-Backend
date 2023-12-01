@@ -3,6 +3,9 @@ from main.models import *
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 from .documents import Documents
 
+from .documents import Document
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
+
 
 class BoardSerializer(serializers.ModelSerializer):
 
@@ -44,8 +47,12 @@ class SlugSerializer(serializers.Serializer):
     slug = serializers.CharField()
 
 
-class DocSerializer(DocumentSerializer):
+class PostDocumentSerializer(DocumentSerializer):
+    price = serializers.FloatField()
 
     class Meta:
-        document = Documents
-        fields = ('name', 'slug')
+        document = Document
+        fields = ('name', 'slug' 'description')
+
+
+

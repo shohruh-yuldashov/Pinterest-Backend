@@ -1,14 +1,15 @@
 from django_elasticsearch_dsl import Document, fields
-from django_elasticsearch_dsl.registries import registry
+
+
 from .models import Post
 
+
 @registry.register_document
-class Documents(Document):
+class Document(Document):
     class Index:
         name = 'main'
-        search = {'number_of_shards': 1,
-                  'number_of_replicas': 0
-                  }
+        search = {'number_of_shards': 1, 'number_of_replicas': 0}
+
 
     name = fields.TextField(
         attr='name',
@@ -29,4 +30,5 @@ class Documents(Document):
         })
 
     class Django:
+
         model = Post

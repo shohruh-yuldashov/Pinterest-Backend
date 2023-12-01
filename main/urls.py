@@ -1,10 +1,14 @@
 from django.urls import path, include
 
+
 from main.views import *
 from rest_framework import routers
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register('search', SearchViewSet, basename='search')
+
+router = routers.DefaultRouter(trailing_slash=False)
+router.register('pinterest-search', SearchViewSet, basename='pinterest_search')
 
 urlpatterns = [
     path('test/', TestApiView.as_view(), name='test'),

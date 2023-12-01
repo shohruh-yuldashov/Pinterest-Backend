@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from main.models import *
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
+from .documents import Documents
 
 from .documents import Document
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
@@ -51,5 +53,6 @@ class PostDocumentSerializer(DocumentSerializer):
     class Meta:
         document = Document
         fields = ('name', 'slug' 'description')
+
 
 

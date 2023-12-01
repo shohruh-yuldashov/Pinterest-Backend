@@ -1,20 +1,26 @@
 from xml.dom.minidom import Document
 
 from django.db.models import Q
+from elasticsearch_dsl import Q as QQ
 from django.http import JsonResponse
+from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
 from main.sereializer import *
 from rest_framework.permissions import IsAuthenticated
+
 from django_elasticsearch_dsl_drf.filter_backends import (
     FilteringFilterBackend,
     SearchFilterBackend,
     SuggesterFilterBackend,
 )
+
+from .documents import Documents
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 from django_elasticsearch_dsl_drf.pagination import PageNumberPagination
 
@@ -256,20 +262,30 @@ class SlugAPIView(RetrieveAPIView):
             todo = Post.objects.filter(slug=slug).first()
         else:
             todo = Post.objects.first()
+
+        todo_serializer = self.get_serializer(todo)
+        return Response(todo_serializer.data)
+
+
+class Pgination(PageNumberPagination):
+
         pntress_serializer = self.get_serializer(todo)
         return Response(pntress_serializer.data)
 
 
 class CustomPageNumberPagination(PageNumberPagination):
+
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
 
 
 class SearchViewSet(DocumentViewSet):
-    document = Document
-    serializer_class = PostDocumentSerializer
-    pagination_class = CustomPageNumberPagination
+
+    document = Documents
+    serializer_class = DocSerializer
+    pagination_class = Pagination
+
 
     filter_backends = [
         FilteringFilterBackend,
@@ -279,21 +295,20 @@ class SearchViewSet(DocumentViewSet):
 
     search_fields = (
         'name',
-        'slug',
-        'description',
+        'slug'
 
     )
 
     filter_fields = {
         'name': 'name',
-        'slug': 'slug',
-        'description': 'description',
+        'slug': 'slug'
+
     }
 
     suggester_fields = {
         'name': {
             'field': 'name.suggest',
-            'suggesters': [
+
                 SUGGESTER_COMPLETION,
             ],
         },
@@ -305,9 +320,12 @@ class SearchViewSet(DocumentViewSet):
         queryset = self.filter_queryset(self.get_queryset().query(query))
         print('Queryset >>>>>', queryset)
         page = self.paginate_queryset(queryset)
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
